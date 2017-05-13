@@ -7,5 +7,6 @@
 			<attribute name="javadoc_location" value="https://hub.spigotmc.org/javadocs/spigot/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/TJPlaysNow/Google Drive/Spigot Plugins/ConfigAPI.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
