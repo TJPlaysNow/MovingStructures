@@ -4,7 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -12,7 +21,7 @@ import com.pzg.www.api.config.Config;
 import com.pzg.www.movingstructure.main.objects.Structure;
 import com.pzg.www.movingstructure.main.objects.StructureState;
 
-public class PluginMain extends JavaPlugin {
+public class PluginMain extends JavaPlugin implements Listener {
 	
 	public static Logger logger;
 	public static Plugin plugin;
@@ -21,6 +30,7 @@ public class PluginMain extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		Bukkit.getPluginManager().registerEvents(this, plugin);
 		logger = getLogger();
 		plugin = this;
 		config = new Config("plugins/StructureMover", "config.yml", plugin);
@@ -48,6 +58,58 @@ public class PluginMain extends JavaPlugin {
 		for (int i = 0; i <= counter; i++) {
 			config.getConfig().set("structure.file." + i, names.get(i));
 			config.saveConfig();
+		}
+	}
+	
+	@EventHandler
+	public void onBlockPlaced(BlockPlaceEvent e) {
+		Player player = e.getPlayer();
+		if (player.getMetadata("CreatingStructure") == new FixedMetadataValue(plugin, "Making-the-best-structure!")) {
+			FixedMetadataValue meta = (FixedMetadataValue) player.getMetadata("SturctureName");
+			for (Structure s : structures) {
+				if (s.getName() == meta.asString()) {
+					s.addBlock(e.getBlock());
+				} else {
+					continue;
+				}
+			}
+			
+		}
+	}
+	
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (sender instanceof Player) {
+			Player player = (Player) sender;
+			if (label.equalsIgnoreCase("createStructure")) {
+				if (args.length == 1) {
+					for (Structure s : structures) {
+						if (args[0] == s.getName()) {
+							player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
+						}
+					}
+					player.setMetadata("CreatingStructure", new FixedMetadataValue(plugin, "Making-the-best-structure!"));
+					player.setMetadata("SturctureName", new FixedMetadataValue(plugin, args[0]));
+					return true;
+				} else {
+					player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use " + ChatColor.GOLD + "/createStructure <StructureName> " + ChatColor.RESET + "to make a structure.");
+					return true;
+				}
+			} else if (label.equalsIgnoreCase("stopEditing")) {
+				if (args.length == 1) {
+					player.removeMetadata("CreatingStructure", plugin);
+					player.removeMetadata("SturctureName", plugin);
+					return true;
+				}
+				return true;
+			} else {
+				return false;
+			}
+		} else if (sender instanceof ConsoleCommandSender) {
+//			ConsoleCommandSender console = (ConsoleCommandSender) sender;
+			return false;
+		} else {
+			return false;
 		}
 	}
 }

@@ -6,3 +6,5 @@ description: Will make structures move!!
 commands:
   createStructure:
     description: Start creating your custom structure.
+  stopEditing:
+    description: Stop creating your custom structure.
