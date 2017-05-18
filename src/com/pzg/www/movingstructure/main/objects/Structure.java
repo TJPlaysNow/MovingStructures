@@ -3,6 +3,7 @@ package com.pzg.www.movingstructure.main.objects;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -11,10 +12,12 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Shulker;
 
-public class structure {
+import com.pzg.www.api.config.Config;
+
+public class Structure {
 	
 	protected String name;
-	
+	protected Config config;
 	protected List<Block> blocks = new ArrayList<Block>();
 	protected List<FallingBlock> fBlocks = new ArrayList<FallingBlock>();
 	protected List<Shulker> sBlocks = new ArrayList<Shulker>();
@@ -23,14 +26,32 @@ public class structure {
 	
 	protected StructureState state;
 	
-	public structure(String name, Block... blocks) {
+	@SuppressWarnings("deprecation")
+	public Structure(Config config) {
+		this.config = config;
+		int blockAmmount = config.getConfig().getInt("Blocks.Ammount");
+		for (int i = 0; i < blockAmmount; i++) {
+			World world = Bukkit.getWorld(config.getConfig().getString("Block." + i + ".Location.World"));
+			double x = config.getConfig().getDouble("Block." + i + ".Location.X");
+			double y = config.getConfig().getDouble("Block." + i + ".Location.Y");
+			double z = config.getConfig().getDouble("Block." + i + ".Location.Z");
+			Material material = Material.getMaterial(config.getConfig().getString("Block." + i + ".Material"));
+			byte data = (byte) config.getConfig().get("Block." + i + ".Data");
+			world.getBlockAt(new Location(world, x, y, z)).setType(material);
+			world.getBlockAt(new Location(world, x, y, z)).setData(data);
+			Block block = world.getBlockAt(new Location(world, x, y, z));
+			blocks.add(block);
+		}
+	}
+	
+	public Structure(String name, Block... blocks) {
 		for (Block block : blocks) {
 			this.blocks.add(block);
 		}
 		this.name = name;
 	}
 	
-	public structure(String name) {
+	public Structure(String name) {
 		this.name = name;
 	}
 	
@@ -52,6 +73,27 @@ public class structure {
 	
 	public void setCenter(Location center) {
 		this.center = center;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public Config saveConfig() {
+		config.getConfig().set("Blocks.Ammount", blocks.size());
+		config.saveConfig();
+		for (int i = 0; i < blocks.size(); i++) {
+			Block block = blocks.get(i);
+			
+			config.getConfig().set("Block." + i + ".Location.World", block.getWorld());
+			config.getConfig().set("Block." + i + ".Location.X", block.getLocation().getX());
+			config.getConfig().set("Block." + i + ".Location.Y", block.getLocation().getY());
+			config.getConfig().set("Block." + i + ".Location.Z", block.getLocation().getZ());
+			
+			config.getConfig().set("Block." + i + ".Material", block.getType().toString());
+			config.getConfig().set("Block." + i + ".Data", block.getData());
+			
+			config.saveConfig();
+		}
+		blocks.clear();
+		return config;
 	}
 	
 	public void refreshCenter() {
@@ -105,7 +147,6 @@ public class structure {
 				sBlock.remove();
 			}
 			centerStand.remove();
-			
 		}
 		if (state == StructureState.Moving) {
 			if (this.state == StructureState.Moving) {
