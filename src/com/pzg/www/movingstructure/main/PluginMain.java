@@ -83,9 +83,11 @@ public class PluginMain extends JavaPlugin implements Listener {
 			Player player = (Player) sender;
 			if (label.equalsIgnoreCase("createStructure")) {
 				if (args.length == 1) {
-					for (Structure s : structures) {
-						if (args[0] == s.getName()) {
-							player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
+					if (!structures.isEmpty()) {
+						for (Structure s : structures) {
+							if (args[0] == s.getName()) {
+								player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
+							}
 						}
 					}
 					player.setMetadata("CreatingStructure", new FixedMetadataValue(plugin, "Making-the-best-structure!"));
