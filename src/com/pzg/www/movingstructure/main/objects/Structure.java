@@ -13,6 +13,7 @@ import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Shulker;
 
 import com.pzg.www.api.config.Config;
+import com.pzg.www.movingstructure.main.PluginMain;
 
 public class Structure {
 	
@@ -36,12 +37,13 @@ public class Structure {
 			double y = config.getConfig().getDouble("Block." + i + ".Location.Y");
 			double z = config.getConfig().getDouble("Block." + i + ".Location.Z");
 			Material material = Material.getMaterial(config.getConfig().getString("Block." + i + ".Material"));
-			byte data = (byte) config.getConfig().get("Block." + i + ".Data");
+			byte data = (byte) Byte.toUnsignedInt((byte) config.getConfig().getInt("Block." + i + ".Data"));
 			world.getBlockAt(new Location(world, x, y, z)).setType(material);
 			world.getBlockAt(new Location(world, x, y, z)).setData(data);
 			Block block = world.getBlockAt(new Location(world, x, y, z));
 			blocks.add(block);
 		}
+		state = StructureState.Build;
 	}
 	
 	public Structure(String name, Block... blocks) {
@@ -49,10 +51,14 @@ public class Structure {
 			this.blocks.add(block);
 		}
 		this.name = name;
+		config = new Config("plugins/StructureMover/Structures", name + ".yml", PluginMain.plugin);
+		state = StructureState.Build;
 	}
 	
 	public Structure(String name) {
 		this.name = name;
+		config = new Config("plugins/StructureMover/Structures", name + ".yml", PluginMain.plugin);
+		state = StructureState.Build;
 	}
 	
 	public void addBlock(Block block) {
@@ -78,11 +84,12 @@ public class Structure {
 	@SuppressWarnings("deprecation")
 	public Config saveConfig() {
 		config.getConfig().set("Blocks.Ammount", blocks.size());
+		config.getConfig().set("Name", name);
 		config.saveConfig();
 		for (int i = 0; i < blocks.size(); i++) {
 			Block block = blocks.get(i);
 			
-			config.getConfig().set("Block." + i + ".Location.World", block.getWorld());
+			config.getConfig().set("Block." + i + ".Location.World", block.getWorld().getName());
 			config.getConfig().set("Block." + i + ".Location.X", block.getLocation().getX());
 			config.getConfig().set("Block." + i + ".Location.Y", block.getLocation().getY());
 			config.getConfig().set("Block." + i + ".Location.Z", block.getLocation().getZ());

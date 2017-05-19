@@ -2,9 +2,12 @@ name: MovingStructures
 author: TJPlaysNow
 main: com.pzg.www.movingstructure.main.PluginMain
 version: 1.0
+depend: [ConfigAPI]
 description: Will make structures move!!
 commands:
   createStructure:
     description: Start creating your custom structure.
   stopEditing:
     description: Stop creating your custom structure.
+  listStructures:
+    description: List all of the structures.
