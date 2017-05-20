@@ -32,9 +32,13 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	public static Plugin plugin;
 	public static Config config;
 	public static List<Structure> structures;
-	public static boolean firstCreation;
+	public static boolean firstCreation = false;
 	
 	protected static HashMap<Player, String> playerEditingStructure = new HashMap<Player, String>();
+	
+	
+	
+	
 	
 	@Override
 	public void onEnable() {
@@ -50,17 +54,23 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 			}
 		}, plugin);
 		if (firstCreation) {
+			logger.info("First creation! Creating default configs.");
 			config.getConfig().set("structures.ammount", 0);
 			config.saveConfig();
 		}
 		for (int i = 0; i <= config.getConfig().getInt("structures.ammount"); i++) {
-			if (i <= 0) continue;
 			String fileName = config.getConfig().getString("structure.file." + i);
 			Config structure = new Config("plugins/StructureMover/Structures", fileName + ".yml", plugin);
 			structures.add(new Structure(structure));
-			logger.info(ChatColor.GOLD + "Loaded structure " + ChatColor.GREEN + structure.getConfig().getName() + ChatColor.GOLD + " sucesfully!");
+			logger.info("Loaded structure " + structure.getConfig().getName() + " sucesfully!");
 		}
 	}
+	
+	
+	
+	
+	
+	
 	
 	@Override
 	public void onDisable() {
@@ -83,6 +93,13 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 		}
 	}
 	
+	
+	
+	
+	
+	
+	
+	
 	@EventHandler
 	public void onBlockPlaced(BlockPlaceEvent e) {
 		Player player = e.getPlayer();
@@ -98,7 +115,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 			}
 		}
 	}
-	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent e) {
 		Player player = e.getPlayer();
@@ -163,10 +179,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	}
 	
 	@Command (name = "structure", arguments = "list", permission = "structure.edit")
-	public void listStructure(Player player, String[] args) {
-	}
-	
-	@Command (name = "structure", arguments = "list", permission = "structure.edit")
 	public void listStructure(CommandSender sender, String[] args) {
 		if (sender instanceof Player) {
 			Player player = (Player) sender;
@@ -181,6 +193,7 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				}
 			}
 			player.sendMessage(ChatColor.GRAY + "-------------");
+			return;
 		} else if (sender instanceof ConsoleCommandSender) {
 			ConsoleCommandSender console = (ConsoleCommandSender) sender;
 			console.sendMessage(ChatColor.GOLD + "Structures : ");
