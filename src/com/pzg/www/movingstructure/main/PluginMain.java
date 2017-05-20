@@ -144,14 +144,11 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	@Command (name = "structure", arguments = "create *", permission = "structure.create")
 	public void createStructure(Player player, String[] args) {
 		if (!structures.isEmpty()) {
-			player.sendMessage("It's not empty");
 			for (Structure s : structures) {
-				player.sendMessage("Looping structure " + s.getName());
 				if (args[0].equalsIgnoreCase(s.getName())) {
 					player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
 					break;
 				} else {
-					player.sendMessage("It's not empty");
 					Structure structure = new Structure(args[0]);
 					structures.add(structure);
 					player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
@@ -160,7 +157,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				}
 			}
 		} else {
-			player.sendMessage("It's empty");
 			Structure structure = new Structure(args[0]);
 			structures.add(structure);
 			player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
@@ -170,12 +166,27 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 
 	@Command (name = "structure", arguments = "edit *", permission = "structure.edit")
 	public void editStructure(Player player, String[] args) {
-		
+		if (!structures.isEmpty()) {
+			for (Structure s : structures) {
+				if (args[0].equalsIgnoreCase(s.getName())) {
+					player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
+					playerEditingStructure.put(player, args[0]);
+					break;
+				} else {
+					player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's been made.");
+					break;
+				}
+			}
+		}
 	}
 
 	@Command (name = "structure", arguments = "delete *", permission = "structure.edit")
 	public void deleteStructure(Player player, String[] args) {
-		
+		if (!structures.isEmpty()) {
+			for (Structure structure : structures) {
+				structures.remove(structure);
+			}
+		}
 	}
 	
 	@Command (name = "structure", arguments = "list", permission = "structure.edit")
