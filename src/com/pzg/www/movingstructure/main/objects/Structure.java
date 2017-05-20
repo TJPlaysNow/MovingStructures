@@ -65,6 +65,10 @@ public class Structure {
 		blocks.add(block);
 	}
 	
+	public void removeBlock(Block block) {
+		blocks.remove(block);
+	}
+	
 	public Block getBlock(int blockId) {
 		return blocks.get(blockId);
 	}

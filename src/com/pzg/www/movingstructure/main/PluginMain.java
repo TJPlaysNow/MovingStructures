@@ -6,23 +6,27 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.erezbiox1.CommandsAPI.Command;
+import com.erezbiox1.CommandsAPI.CommandListener;
+import com.erezbiox1.CommandsAPI.CommandManager;
 import com.pzg.www.api.config.Config;
 import com.pzg.www.api.config.ConfigCreate;
 import com.pzg.www.movingstructure.main.objects.Structure;
 import com.pzg.www.movingstructure.main.objects.StructureState;
 
-public class PluginMain extends JavaPlugin implements Listener {
+import net.md_5.bungee.api.ChatColor;
+
+public class PluginMain extends JavaPlugin implements Listener, CommandListener {
 	
 	public static Logger logger;
 	public static Plugin plugin;
@@ -36,6 +40,7 @@ public class PluginMain extends JavaPlugin implements Listener {
 	public void onEnable() {
 		logger = getLogger();
 		plugin = this;
+		CommandManager.register(this);
 		structures = new ArrayList<Structure>();
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 		config = new Config("plugins/StructureMover", "config.yml", new ConfigCreate() {
@@ -81,7 +86,6 @@ public class PluginMain extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onBlockPlaced(BlockPlaceEvent e) {
 		Player player = e.getPlayer();
-		player.sendMessage("Placed block");
 		if (playerEditingStructure.containsKey(player)) {
 			player.sendMessage(ChatColor.GOLD + "Attempting to build off of " + ChatColor.AQUA + playerEditingStructure.get(player));
 			for (Structure s : structures) {
@@ -92,79 +96,116 @@ public class PluginMain extends JavaPlugin implements Listener {
 					continue;
 				}
 			}
-			
 		}
 	}
 	
-	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if (sender instanceof Player) {
-			Player player = (Player) sender;
-			if (label.equalsIgnoreCase("createStructure")) {
-				if (args.length == 1) {
-					if (!structures.isEmpty()) {
-						for (Structure s : structures) {
-							if (args[0] == s.getName()) {
-								player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
-							}
-						}
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent e) {
+		Player player = e.getPlayer();
+		if (playerEditingStructure.containsKey(player)) {
+			player.sendMessage(ChatColor.GOLD + "Attempting to build off of " + ChatColor.AQUA + playerEditingStructure.get(player));
+			for (Structure s : structures) {
+				if (s.getName() == playerEditingStructure.get(player)) {
+					if (s.getBlocks().contains(e.getBlock())) {
+						player.sendMessage(ChatColor.DARK_GREEN + "You removed a block!");
+						s.removeBlock(e.getBlock());
 					}
+				} else {
+					continue;
+				}
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@Command (name = "structure", arguments = "create *", permission = "structure.create")
+	public void createStructure(Player player, String[] args) {
+		if (!structures.isEmpty()) {
+			player.sendMessage("It's not empty");
+			for (Structure s : structures) {
+				player.sendMessage("Looping structure " + s.getName());
+				if (args[0].equalsIgnoreCase(s.getName())) {
+					player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
+					break;
+				} else {
+					player.sendMessage("It's not empty");
 					Structure structure = new Structure(args[0]);
 					structures.add(structure);
 					player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
 					playerEditingStructure.put(player, args[0]);
-					return true;
-				} else {
-					player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use " + ChatColor.GOLD + "/createStructure <StructureName> " + ChatColor.RESET + "to make a structure.");
-					return true;
+					break;
 				}
-			} else if (label.equalsIgnoreCase("stopEditing")) {
-				if (args.length == 0) {
-					player.sendMessage(ChatColor.DARK_GREEN + "You are no longer editing the structure.");
-					for (Structure structure : structures) {
-						if (playerEditingStructure.get(player).equalsIgnoreCase(structure.getName())) {
-							structure.saveConfig();
-						}
-					}
-					playerEditingStructure.remove(player);
-					return true;
-				}
-				return true;
-			} else if (label.equalsIgnoreCase("listStructures")) {
-				player.sendMessage(ChatColor.GOLD + "Structures : ");
-				player.sendMessage(ChatColor.GRAY + "-------------");
-				if (structures.isEmpty()) {
-					player.sendMessage(ChatColor.RED + "There are no structures to be listed!");
-				} else {
-					for (int i = 0; i <= structures.size(); i++) {
-						if (i > 10) break;
-						player.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + structures.get(i).getName());
-					}
-				}
-				player.sendMessage(ChatColor.GRAY + "-------------");
-				return true;
-			} else {
-				return false;
-			}
-		} else if (sender instanceof ConsoleCommandSender) {
-			ConsoleCommandSender console = (ConsoleCommandSender) sender;
-			if (label.equalsIgnoreCase("listStructures")) {
-				console.sendMessage(ChatColor.GOLD + "Structures : ");
-				console.sendMessage(ChatColor.GRAY + "-------------");
-				if (structures.isEmpty()) {
-					console.sendMessage(ChatColor.RED + "There are no structures to be listed!");
-				} else {
-					for (Structure structure : structures) {
-						console.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + structure.getName());
-					}
-				}
-				console.sendMessage(ChatColor.GRAY + "-------------");
-				return true;
-			} else {
-				return false;
 			}
 		} else {
-			return false;
+			player.sendMessage("It's empty");
+			Structure structure = new Structure(args[0]);
+			structures.add(structure);
+			player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
+			playerEditingStructure.put(player, args[0]);
 		}
+	}
+
+	@Command (name = "structure", arguments = "edit *", permission = "structure.edit")
+	public void editStructure(Player player, String[] args) {
+		
+	}
+
+	@Command (name = "structure", arguments = "delete *", permission = "structure.edit")
+	public void deleteStructure(Player player, String[] args) {
+		
+	}
+	
+	@Command (name = "structure", arguments = "list", permission = "structure.edit")
+	public void listStructure(Player player, String[] args) {
+	}
+	
+	@Command (name = "structure", arguments = "list", permission = "structure.edit")
+	public void listStructure(CommandSender sender, String[] args) {
+		if (sender instanceof Player) {
+			Player player = (Player) sender;
+			player.sendMessage(ChatColor.GOLD + "Structures : ");
+			player.sendMessage(ChatColor.GRAY + "-------------");
+			if (structures.isEmpty()) {
+				player.sendMessage(ChatColor.RED + "There are no structures to be listed!");
+			} else {
+				for (int i = 0; i <= structures.size(); i++) {
+					if (i > 10) break;
+					player.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + structures.get(i).getName());
+				}
+			}
+			player.sendMessage(ChatColor.GRAY + "-------------");
+		} else if (sender instanceof ConsoleCommandSender) {
+			ConsoleCommandSender console = (ConsoleCommandSender) sender;
+			console.sendMessage(ChatColor.GOLD + "Structures : ");
+			console.sendMessage(ChatColor.GRAY + "-------------");
+			if (structures.isEmpty()) {
+				console.sendMessage(ChatColor.RED + "There are no structures to be listed!");
+			} else {
+				for (Structure structure : structures) {
+					console.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + structure.getName());
+				}
+			}
+			console.sendMessage(ChatColor.GRAY + "-------------");
+		} else {}
+	}
+	
+	@Command (name = "structure", arguments = "stop editing", permission = "structure.edit")
+	public void stopEditingStructure(Player player, String[] args) {
+		for (Structure structure : structures) {
+			if (!playerEditingStructure.isEmpty()) {
+				if (playerEditingStructure.get(player).equalsIgnoreCase(structure.getName())) {
+					structure.saveConfig();
+					player.sendMessage(ChatColor.DARK_GREEN + "You are no longer editing the structure.");
+				}
+			} else player.sendMessage(ChatColor.RED + "You weren't creating a structure.");
+		}
+		playerEditingStructure.remove(player);
 	}
 }

@@ -2,11 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/ZombieAI/spigot-1.11.2.jar">
+	<classpathentry kind="lib" path="spigot-1.11.2.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="https://hub.spigotmc.org/javadocs/spigot/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/TJPlaysNow/Google Drive/Spigot Plugins/ConfigAPI.jar"/>
+	<classpathentry kind="lib" path="ConfigAPI.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
