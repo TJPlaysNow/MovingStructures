@@ -15,12 +15,14 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.erezbiox1.CommandsAPI.Command;
 import com.erezbiox1.CommandsAPI.CommandListener;
 import com.erezbiox1.CommandsAPI.CommandManager;
 import com.pzg.www.api.config.Config;
 import com.pzg.www.api.config.ConfigCreate;
+import com.pzg.www.movingstructure.main.objects.Block;
 import com.pzg.www.movingstructure.main.objects.Structure;
 import com.pzg.www.movingstructure.main.objects.StructureState;
 
@@ -59,10 +61,11 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 			config.saveConfig();
 		}
 		for (int i = 0; i <= config.getConfig().getInt("structures.ammount"); i++) {
+			if (i <= 0) continue;
 			String fileName = config.getConfig().getString("structure.file." + i);
 			Config structure = new Config("plugins/StructureMover/Structures", fileName + ".yml", plugin);
 			structures.add(new Structure(structure));
-			logger.info("Loaded structure " + structure.getConfig().getName() + " sucesfully!");
+			logger.info("Loaded structure " + fileName + " sucesfully!");
 		}
 	}
 	
@@ -104,11 +107,10 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	public void onBlockPlaced(BlockPlaceEvent e) {
 		Player player = e.getPlayer();
 		if (playerEditingStructure.containsKey(player)) {
-			player.sendMessage(ChatColor.GOLD + "Attempting to build off of " + ChatColor.AQUA + playerEditingStructure.get(player));
 			for (Structure s : structures) {
 				if (s.getName() == playerEditingStructure.get(player)) {
 					player.sendMessage(ChatColor.DARK_GREEN + "You added a new block!");
-					s.addBlock(e.getBlock());
+					s.addBlock(new Block(e.getBlock()));
 				} else {
 					continue;
 				}
@@ -119,12 +121,11 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	public void onBlockBreak(BlockBreakEvent e) {
 		Player player = e.getPlayer();
 		if (playerEditingStructure.containsKey(player)) {
-			player.sendMessage(ChatColor.GOLD + "Attempting to build off of " + ChatColor.AQUA + playerEditingStructure.get(player));
 			for (Structure s : structures) {
 				if (s.getName() == playerEditingStructure.get(player)) {
 					if (s.getBlocks().contains(e.getBlock())) {
 						player.sendMessage(ChatColor.DARK_GREEN + "You removed a block!");
-						s.removeBlock(e.getBlock());
+						s.removeBlock(new Block(e.getBlock()));
 					}
 				} else {
 					continue;
@@ -138,8 +139,34 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	
 	
 	
-	
-	
+	@Command (name = "structure", arguments = "move *", permission = "structure.move")
+	public void moveStructure(Player player, String[] args) {
+		if (!structures.isEmpty()) {
+			boolean notFound = true;
+			for (Structure structure : structures) {
+				logger.info("Looping " + structure.getName());
+				if (args[0].equalsIgnoreCase(structure.getName())) {
+					logger.info("Blocks " + structure.getBlocks().size());
+					structure.setCenter(player.getLocation());
+					structure.setState(StructureState.Moving);
+					player.sendMessage("Moving structure 10 blocks forward!");
+					notFound = false;
+					new BukkitRunnable() {
+						int i = 0;
+						@Override
+						public void run() {
+							i++;
+							if (i <= 1000) {
+								logger.info("Moving");
+								structure.move(.01, 0, 0, 0, 0);
+							} else this.cancel();
+						}
+					}.runTaskTimerAsynchronously(this, 0l, 1l);
+				}
+			}
+			if (notFound) player.sendMessage(ChatColor.RED + "Couldn't find that structure!");
+		} else player.sendMessage(ChatColor.RED + "There aren't any structures!");
+	}
 	
 	@Command (name = "structure", arguments = "create *", permission = "structure.create")
 	public void createStructure(Player player, String[] args) {
@@ -149,7 +176,7 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 					player.sendMessage(ChatColor.RED + "[ERROR] " + ChatColor.RESET + "Please use a structure name that's not been made.");
 					break;
 				} else {
-					Structure structure = new Structure(args[0]);
+					Structure structure = new Structure(args[0], player.getWorld());
 					structures.add(structure);
 					player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
 					playerEditingStructure.put(player, args[0]);
@@ -157,7 +184,7 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				}
 			}
 		} else {
-			Structure structure = new Structure(args[0]);
+			Structure structure = new Structure(args[0], player.getWorld());
 			structures.add(structure);
 			player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
 			playerEditingStructure.put(player, args[0]);
@@ -168,7 +195,9 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 	public void editStructure(Player player, String[] args) {
 		if (!structures.isEmpty()) {
 			for (Structure s : structures) {
+				logger.info("Looping " + s.getName());
 				if (args[0].equalsIgnoreCase(s.getName())) {
+					s.setState(StructureState.Build);
 					player.sendMessage(ChatColor.DARK_GREEN + "You are now creating a structure!");
 					playerEditingStructure.put(player, args[0]);
 					break;
@@ -177,10 +206,10 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 					break;
 				}
 			}
-		}
+		} else player.sendMessage(ChatColor.GREEN + "Try /structure create [Name] first.");
 	}
 
-	@Command (name = "structure", arguments = "delete *", permission = "structure.edit")
+	@Command (name = "structure", arguments = "delete *", permission = "structure.delete")
 	public void deleteStructure(Player player, String[] args) {
 		if (!structures.isEmpty()) {
 			for (Structure structure : structures) {
@@ -189,7 +218,8 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 		}
 	}
 	
-	@Command (name = "structure", arguments = "list", permission = "structure.edit")
+	
+	@Command (name = "structure", arguments = "list", permission = "structure.list")
 	public void listStructure(CommandSender sender, String[] args) {
 		if (sender instanceof Player) {
 			Player player = (Player) sender;
@@ -204,7 +234,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				}
 			}
 			player.sendMessage(ChatColor.GRAY + "-------------");
-			return;
 		} else if (sender instanceof ConsoleCommandSender) {
 			ConsoleCommandSender console = (ConsoleCommandSender) sender;
 			console.sendMessage(ChatColor.GOLD + "Structures : ");
@@ -220,7 +249,8 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 		} else {}
 	}
 	
-	@Command (name = "structure", arguments = "stop editing", permission = "structure.edit")
+	
+	@Command (name = "structure", arguments = "stop editing", permission = "structure.stop.editing")
 	public void stopEditingStructure(Player player, String[] args) {
 		for (Structure structure : structures) {
 			if (!playerEditingStructure.isEmpty()) {

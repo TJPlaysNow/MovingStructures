@@ -10,6 +10,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Created by Erezbiox1 on 11/04/2017.
  * (C) 2016 Erez Rotem All Rights Reserved.
  */
+
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface CommandClass {
