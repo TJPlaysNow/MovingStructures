@@ -17,7 +17,12 @@ public class Structure {
 	protected String name;
 	protected Config config;
 	protected List<Block> blocks = new ArrayList<Block>();
+<<<<<<< HEAD
 	protected List<MovingBlock> movingBlocks = new ArrayList<MovingBlock>();
+=======
+	protected List<FallingBlock> fBlocks = new ArrayList<FallingBlock>();
+	protected List<Shulker> sBlocks = new ArrayList<Shulker>();
+>>>>>>> origin/master
 	protected ArmorStand aHolder;
 	protected Location center;
 	protected World world;
@@ -41,13 +46,18 @@ public class Structure {
 			blocks.add(block);
 		}
 		
+<<<<<<< HEAD
 		World world = Bukkit.getWorld(config.getConfig().getString("Center.Location.World"));
+=======
+		World world = config.getConfig().getInt("Center.Location.World");
+>>>>>>> origin/master
 		int x = config.getConfig().getInt("Center.Location.X");
 		int y = config.getConfig().getInt("Center.Location.Y");
 		int z = config.getConfig().getInt("Center.Location.Z");
 		float yaw = config.getConfig().getInt("Center.Location.yaw");
 		float pitch = config.getConfig().getInt("Center.Location.pitch");
 		
+<<<<<<< HEAD
 		center = new Location(world, x, y, z, yaw, pitch);
 		
 		aHolder = center.getWorld().spawn(center, ArmorStand.class);
@@ -55,6 +65,9 @@ public class Structure {
 		aHolder.setVisible(false);
 		aHolder.setCollidable(false);
 		aHolder.setRemoveWhenFarAway(false);
+=======
+		center = new Location(world, x, y, z)
+>>>>>>> origin/master
 		
 		name = config.getConfig().getString("Name");
 		state = StructureState.Build;
@@ -137,6 +150,13 @@ public class Structure {
 			config.getConfig().set("Block." + i + ".Material", block.getType().toString());
 			config.getConfig().set("Block." + i + ".Data", block.getData());
 			
+			config.getConfig().set("Center.Location.World", center.getWorld());
+			config.getConfig().set("Center.Location.X", center.getX());
+			config.getConfig().set("Center.Location.Y", center.getY());
+			config.getConfig().set("Center.Location.Z", center.getZ());
+			config.getConfig().set("Center.Location.yaw", center.getYaw());
+			config.getConfig().set("Center.Location.pitch", center.getPitch());
+			
 			config.saveConfig();
 		}
 		
@@ -155,7 +175,15 @@ public class Structure {
 		center.add(addX, addY, addZ);
 		center.setYaw(center.getYaw() + addYaw);
 		center.setPitch(center.getPitch() + addPitch);
+<<<<<<< HEAD
 		aHolder.teleport(center);
+=======
+		
+		
+// 		for (ArmorStand a : aHolder) {
+// 			a.teleport(a.getLocation().add(new Location(world, addX, addY, addZ, addYaw, addPitch)));
+// 		}
+>>>>>>> origin/master
 	}
 	
 	public void setState(StructureState state) {
@@ -163,22 +191,72 @@ public class Structure {
 			if (this.state == StructureState.Build) {
 				return;
 			}
+<<<<<<< HEAD
 			for (MovingBlock block : movingBlocks) {
 				aHolder.removePassenger(block.getHold());
 				Block mBlock = new Block(block);
 				block.destroy();
 				blocks.add(mBlock);
+=======
+			for (ArmorStand armor : aHolder) {
+				for (Entity e : armor.getPassengers()) {
+					if (e.getType().equals(EntityType.FALLING_BLOCK)) {
+						FallingBlock f = (FallingBlock) e;
+						Block b = new Block(f.getLocation(), f.getMaterial(), f.getBlockData());
+						blocks.add(b);
+						fBlocks.remove(f);
+						f.remove();
+					} else if (e.getType().equals(EntityType.SHULKER)) {
+						Shulker s = (Shulker) e;
+						sBlocks.remove(s);
+						s.remove();
+					}
+				}
+				aHolder = null;
+>>>>>>> origin/master
 			}
 			movingBlocks.clear();
 		} else if (state == StructureState.Moving) {
 			if (this.state == StructureState.Moving) {
 				return;
 			}
+<<<<<<< HEAD
 			aHolder.teleport(center);
 			for (Block block : blocks) {
 				MovingBlock mBlock = new MovingBlock(block);
 				movingBlocks.add(mBlock);
+=======
+			
+			ArmorStand center = center.getWorld().spawn(center, ArmorStand.class);
+			armor.setVisible(false);
+			armor.setCollidable(false);
+			armor.setCustomNameVisible(false);
+			armor.setRemoveWhenFarAway(false);
+			
+			for (Block block : blocks) {
+				block.getWorld().getBlockAt(block.getLocation()).setType(Material.AIR);
+				
+				FallingBlock fBlock = block.getWorld().spawn(block.getLocation(), FallingBlock.class);
+				fBlock.setGravity(false);
+				fBlock.setVelocity(new Vector(0, 0, 0));
+				fBlock.setTicksLived(-1);
+				fBlock.setMetadata("TileID", new FixedMetadataValue(PluginMain.plugin, block.getType().getId()));
+				fBlock.setMetadata("Data", new FixedMetadataValue(PluginMain.plugin, block.data.intValue()));
+				
+				Shulker sBlock = block.getWorld().spawn(block.getLocation(), Shulker.class);
+				sBlock.setAI(false);
+				sBlock.setSilent(true);
+				sBlock.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 2147483647, 1, true));
+				
+				armor.addPassenger(fBlock);
+				armor.addPassenger(sBlock);
+				
+				fBlocks.add(fBlock);
+				sBlocks.add(sBlock);
+>>>>>>> origin/master
 			}
+			
+			aHolder = armor;
 			blocks.clear();
 			for (MovingBlock block : movingBlocks) {
 				aHolder.addPassenger(block.getHold());
