@@ -85,6 +85,8 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				structure.setState(StructureState.Build);
 				String name = structure.getName();
 				names.add(name);
+				structure.saveConfig();
+				structure.clearLists();
 			}
 		}
 		config.getConfig().set("structures.ammount", counter);
@@ -147,7 +149,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				logger.info("Looping " + structure.getName());
 				if (args[0].equalsIgnoreCase(structure.getName())) {
 					logger.info("Blocks " + structure.getBlocks().size());
-					structure.setCenter(player.getLocation());
 					structure.setState(StructureState.Moving);
 					player.sendMessage("Moving structure 10 blocks forward!");
 					notFound = false;
@@ -208,7 +209,7 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 			}
 		} else player.sendMessage(ChatColor.GREEN + "Try /structure create [Name] first.");
 	}
-
+	
 	@Command (name = "structure", arguments = "delete *", permission = "structure.delete")
 	public void deleteStructure(Player player, String[] args) {
 		if (!structures.isEmpty()) {
@@ -217,7 +218,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 			}
 		}
 	}
-	
 	
 	@Command (name = "structure", arguments = "list", permission = "structure.list")
 	public void listStructure(CommandSender sender, String[] args) {
@@ -249,6 +249,17 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 		} else {}
 	}
 	
+	@Command (name = "structure", arguments = "set center", permission = "structure.set.location.center")
+	public void setCenter(Player player, String[] args) {
+		for (Structure structure : structures) {
+			if (!playerEditingStructure.isEmpty()) {
+				if (playerEditingStructure.get(player).equalsIgnoreCase(structure.getName())) {
+					structure.setCenter(player.getLocation());
+				}
+			} else player.sendMessage(ChatColor.RED + "You weren't creating a structure.");
+		}
+		playerEditingStructure.remove(player);
+	}
 	
 	@Command (name = "structure", arguments = "stop editing", permission = "structure.stop.editing")
 	public void stopEditingStructure(Player player, String[] args) {

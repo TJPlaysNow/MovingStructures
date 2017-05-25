@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 
+
 public class Block {
 	
 	public World world;
@@ -37,6 +38,15 @@ public class Block {
 		this.z = location.getZ();
 		this.material = material;
 		this.data = data;
+	}
+	
+	public Block(MovingBlock movingBlock) {
+		this.world = movingBlock.getLocation().getWorld();
+		this.x = movingBlock.getLocation().getX();
+		this.y = movingBlock.getLocation().getY();
+		this.z = movingBlock.getLocation().getZ();
+		this.material = movingBlock.getType();
+		this.data = movingBlock.getData();
 	}
 
 	public Location getLocation() {
