@@ -159,7 +159,7 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 							i++;
 							if (i <= 1000) {
 								logger.info("Moving");
-								structure.move(.01, 0, 0, 0, 0);
+								structure.move(.01, 0, 0);
 							} else this.cancel();
 						}
 					}.runTaskTimerAsynchronously(this, 0l, 1l);

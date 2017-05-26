@@ -41,10 +41,10 @@ public class Block {
 	}
 	
 	public Block(MovingBlock movingBlock) {
-		this.world = movingBlock.getLocation().getWorld();
-		this.x = movingBlock.getLocation().getX();
-		this.y = movingBlock.getLocation().getY();
-		this.z = movingBlock.getLocation().getZ();
+		this.world = movingBlock.getPosition().getWorld();
+		this.x = movingBlock.getPosition().getX();
+		this.y = movingBlock.getPosition().getY();
+		this.z = movingBlock.getPosition().getZ();
 		this.material = movingBlock.getType();
 		this.data = movingBlock.getData();
 	}
