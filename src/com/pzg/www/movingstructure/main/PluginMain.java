@@ -258,7 +258,6 @@ public class PluginMain extends JavaPlugin implements Listener, CommandListener 
 				}
 			} else player.sendMessage(ChatColor.RED + "You weren't creating a structure.");
 		}
-		playerEditingStructure.remove(player);
 	}
 	
 	@Command (name = "structure", arguments = "stop editing", permission = "structure.stop.editing")
